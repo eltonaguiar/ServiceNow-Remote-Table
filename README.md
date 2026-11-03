@@ -165,6 +165,45 @@ Application Navigator → **System UI** → **Lists**
 **Alternative (form view):**  
 Right-click the form header → **Configure** → **Form Layout** → double-click in the empty space outside the slushbucket → `sys_id` appears → move it to the selected side.
 
+### What `row.sys_id = gs.generateGUID();` actually does
+
+```javascript
+row.sys_id = gs.generateGUID();
+```
+
+`gs.generateGUID()` creates a new random 32-character unique ID (a GUID). You put that value into the `sys_id` field of the row object before you call `v_table.addRow(row)`.
+
+**Is it temporary?**
+
+- The row itself only lives in memory (it is not stored in the ServiceNow database).
+- But the `sys_id` you assign is still required while that row exists in the current query result.
+- If you open the form, filter, or reference that row, ServiceNow uses the `sys_id` you supplied to identify it for that request/session.
+- Next time the list is loaded, the script runs again and generates a brand-new GUID (unless you deliberately reuse the same one).
+
+**Why is it still needed on a remote table?**
+
+ServiceNow requires every row (even remote/in-memory rows) to have a non-empty, unique `sys_id`.
+
+Reasons:
+1. **Forms and navigation** — When you click a row to open the form, ServiceNow looks up the record by `sys_id`. Without one, the form cannot open.
+2. **Uniqueness** — The platform enforces that every row returned by the remote table must have a unique `sys_id`. If two rows share the same one (or have a blank one), you get warnings or errors.
+3. **References and related lists** — If another table or a form references your remote table, it needs a stable `sys_id` to point at.
+4. **Caching and query matching** — When caching is enabled, or when the user does a “get by sys_id”, ServiceNow uses the value you set.
+
+Official behavior (from the out-of-box sample comments):
+> `sys_id` must be non-empty and uniquely identify each row.  
+> The above rule will be strictly enforced for editable tables, and generate warnings for read-only tables.
+
+**Practical tip:** If your external data already has a stable unique ID (for example a primary key from MySQL or an external ticket number), you can use that instead of generating a random GUID:
+
+```javascript
+row.sys_id = externalRecord.id;   // reuse the external unique key
+```
+
+That way the same logical record keeps the same `sys_id` across refreshes, which makes forms, references, and caching more predictable.
+
+**Bottom line:** Even though the data is not stored in ServiceNow’s database, you still must supply a unique `sys_id` so the platform can treat the in-memory row like a real record.
+
 ---
 
 ## Deep dive: `v_table`, `v_query`, transforming data, cooldowns, and dynamic prompts
