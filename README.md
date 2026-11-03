@@ -438,6 +438,17 @@ You can point a second remote table at a simple PHP endpoint that queries a MySQ
 - The PHP script connects to MySQL, runs a query, and returns JSON.
 - The remote table Query script calls that endpoint with `sn_ws.RESTMessageV2` and turns each JSON row into a remote table row.
 
+
+**Real endpoint example (already deployed)**
+
+- **Live:** https://findtorontoevents.ca/fc/api/events_feed.php
+- **Server path:** `/findtorontoevents.ca/fc/api/events_feed.php`
+- **Repo:** `favcreators/docs/api/events_feed.php`
+- Currently serving ~13,076 events, paged and filtered.
+
+You can point the remote table Query script at this URL (or a similar one) and parse the JSON it returns.
+
+
 ### Placeholder PHP endpoint (example)
 
 ```php
