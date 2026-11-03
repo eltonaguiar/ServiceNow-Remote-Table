@@ -109,6 +109,33 @@ We don’t use the advanced filtering methods because this demo only returns one
 
 ---
 
+## Why Sys ID is not visible in the list (and how to show it)
+
+By design, ServiceNow hides the `sys_id` field from the normal **Personalize List Columns** dialog (the gear icon). It is considered a technical/internal identifier, so it does not appear in the “Available” columns list for most tables, including custom and remote tables.
+
+It still exists on every row (your script correctly sets `row.sys_id = gs.generateGUID()`), you just can’t add it through the normal personalize UI.
+
+### How to make Sys ID visible on the list
+
+**Navigation breadcrumbs:**  
+Application Navigator → **System UI** → **Lists**
+
+1. Find the list record for your table (`u_st_pollination_ai_simple`) and the view you use (usually “Default”).
+2. Open that list record.
+3. In the **List Elements** related list, click **New**.
+4. Set:
+   - **Element** = `sys_id`
+   - **Position** = whatever order you want (e.g. 100 or 1)
+5. Save.
+6. Go to `cache.do` in the browser (or log out and back in) to clear the cache.
+7. Re-open your remote table list.  
+   Sys ID should now appear as a column. You can then personalize/reorder it if needed.
+
+**Alternative (form view):**  
+Right-click the form header → **Configure** → **Form Layout** → double-click in the empty space outside the slushbucket → `sys_id` appears → move it to the selected side.
+
+---
+
 ## Access Control — Who can see the remote table?
 
 Remote tables follow the same security rules as normal tables.
