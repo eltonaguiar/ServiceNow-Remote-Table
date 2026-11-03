@@ -19,10 +19,128 @@ Optionally Create module so it shows in the nav → Submit
  https://text.pollinations.ai/What%20is%202+2?model=openai-fast 
 <img width="1429" height="661" alt="image" src="https://github.com/user-attachments/assets/69bc7a51-951e-47cf-945a-d008eb630600" />
 
+<img width="199" height="85" alt="image" src="https://github.com/user-attachments/assets/0b37bda5-5475-435c-b7fc-d489c006a420" />
 
 
+
+# Remote Table Actual Code
+// This is the main function ServiceNow runs every time someone opens your remote table
+(function executeQuery(v_table, v_query) {
+
+    try {
+        // -------------------------------------------------
+        // 1. The question we want to ask the AI
+        // -------------------------------------------------
+        var prompt = "What is 2 + 2?";
+        // Later you can change this to whatever you want, or even make it dynamic
+
+        // -------------------------------------------------
+        // 2. Build the URL that Pollinations understands
+        // -------------------------------------------------
+        // encodeURIComponent turns spaces and special characters into a safe URL format
+        // Example: "What is 2 + 2?" becomes "What%20is%202%20%2B%202%3F"
+        var safePrompt = encodeURIComponent(prompt);
+
+        // The full URL looks like:
+        // https://text.pollinations.ai/What%20is%202%20%2B%202%3F?model=openai-fast
+        var endpoint = "https://text.pollinations.ai/" + safePrompt + "?model=openai-fast";
+
+        // -------------------------------------------------
+        // 3. Create a REST message (this is how ServiceNow calls websites/APIs)
+        // -------------------------------------------------
+        var rm = new sn_ws.RESTMessageV2();
+        rm.setEndpoint(endpoint);          // the URL we built above
+        rm.setHttpMethod("GET");           // GET = just ask for data (no body needed)
+
+        // -------------------------------------------------
+        // 4. Send the request and get the answer
+        // -------------------------------------------------
+        var response = rm.execute();       // actually call Pollinations
+        var status   = response.getStatusCode();  // 200 means success
+        var body     = response.getBody();        // the plain text answer from the AI
+
+        // -------------------------------------------------
+        // 5. Check if something went wrong
+        // -------------------------------------------------
+        if (response.haveError() || status != 200) {
+            // Show the error at the bottom of the list view
+            v_query.setLastErrorMessage("Pollinations error " + status + ": " + body);
+            return; // stop here
+        }
+
+        // -------------------------------------------------
+        // 6. Create one row and put it in the remote table
+        // -------------------------------------------------
+        var row = {};
+
+        // Every row needs a unique sys_id so ServiceNow can open the form
+        row.sys_id = gs.generateGUID();
+
+        // These names MUST match the Column name fields you created earlier
+        row.u_prompt   = prompt;   // the question we asked
+        row.u_response = body;     // the answer Pollinations gave us
+
+        // Finally add the row to the table
+        v_table.addRow(row);
+
+    } catch (ex) {
+        // If anything unexpected breaks, show the error message
+        v_query.setLastErrorMessage(ex.message);
+    }
+
+})(v_table, v_query);
+
+# Advanced Options FYI
+****<img width="1433" height="658" alt="image" src="https://github.com/user-attachments/assets/23e68340-dd0d-4181-b825-00105cb43742" />
+
+Result:
+<img width="1841" height="178" alt="image" src="https://github.com/user-attachments/assets/b5e97ece-ea0f-41c6-b29a-8d87fca051e8" />
+
+
+
+
+# Remote Table out of box sample code
+
+(function executeQuery(v_table, v_query) {
+     // Parameters:
+     //      v_table - object to record response:
+     //          v_table.addRow({ ... })                - adds a row to the result set.
+     //              keys are the column names of the table definition.
+     //              sys_id must be non-empty and uniquely identify each row.
+     //                  the above rule will be strictly enforced for editable tables, and generate warnings for read-only tables.
+     //                  sys_id will be supplied to the Update, and Delete scripts to specify the row's identity.
+ 
+     //      v_query - the query definition:
+     //          v_query.getEncodedQuery()              - encoded querystring
+     //          v_query.getCondition(field)            - encoded querystring for the given field (includes field name, operator, and value)
+     //          v_query.getParameter(field)            - parameter for the given field (only includes value for equality conditions)
+     //          v_query.isGet()                        - whether the query is a single get by sys_id
+     //          v_query.getSysId()                     - parameter for sys_id field
+     //          v_query.isTextSearch()                 - whether the query contains a text query parameter
+     //          v_query.getTextSearch()                - text search query parameter (internal field name 123TEXTQUERY321)
+     //          v_query.getFirstRowWanted()            - the first row to include, don't use with caching
+     //          v_query.getLastRowWanted()             - the last row to include, don't use with caching
+     //          v_query.setLastErrorMessage(message)   - the message is visible from GlideRecord.getLastErrorMessage()
+ 
+     // Sample code:
+     //  try {
+     //      retrieve-rows-from-external-system;     //      if (there-was-an-error) {
+     //          var message = ...;     //          v_query.setLastErrorMessage(message);
+     //          return;
+     //      }
+     //
+     //      for (var row in rows) {
+     //          v_table.addRow(row);
+     //      }
+     //  } catch (ex) {
+     //      var message = ex.getMessage();
+     //      v_query.setLastErrorMessage(message);
+     //  }
+ 
+  })(v_table, v_query);
 
 # IGNORE BELOW , this would be covered in a future update/
+
 
 =-===================================
 
