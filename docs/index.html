@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ServiceNow Remote Table Guide</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1f2328;
+      --muted: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+      --code-bg: #f6f8fa;
+      --sidebar-bg: #f6f8fa;
+    }
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --code-bg: #161b22;
+      --sidebar-bg: #161b22;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 280px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar h2 { font-size: 1rem; margin-top: 0; }
+    .sidebar a {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      padding: 0.3rem 0;
+      font-size: 0.9rem;
+    }
+    .sidebar a:hover { color: var(--accent); }
+    .main {
+      flex: 1;
+      padding: 2rem 3rem;
+      max-width: 900px;
+    }
+    h1 { border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    h2 { margin-top: 2rem; }
+    .breadcrumb {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.85rem;
+      margin: 0.5rem 0 1rem;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .theme-toggle {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .summary {
+      background: var(--code-bg);
+      border-left: 4px solid var(--accent);
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Contents</h2>
+      <a href="#summary">Summary</a>
+      <a href="#create-table">1. Create the Remote Table</a>
+      <a href="#create-definition">2. Create the Query Definition</a>
+      <a href="#sysid">3. Showing Sys ID</a>
+      <a href="#deep-dive">4. Deep Dive</a>
+      <a href="#access">5. Access Control</a>
+      <a href="#mysql">6. Mainstream Example: MySQL Events</a>
+      <a href="#next">7. Beyond the Demo</a>
+      <br>
+      <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark/Light</button>
+    </aside>
+
+    <main class="main">
+      <h1>ServiceNow Remote Table Guide</h1>
+      <p>A practical guide to building a live view of external data inside ServiceNow using Remote Tables. Includes a simple Pollinations AI example and a more mainstream MySQL events example.</p>
+
+      <div class="summary" id="summary">
+        <strong>Summary</strong><br>
+        A remote table is a schema that lives in ServiceNow, but whose rows are built in memory every time someone opens the list. You write a Definition (script or Flow) that calls an external source, then uses <code>v_table.addRow()</code> to return the results. This guide covers setup, the <code>sys_id</code> requirement, access control, and a real-world MySQL pattern.
+      </div>
+
+      <h2 id="create-table">1. Create the Remote Table</h2>
+      <div class="breadcrumb">Application Navigator → System Definition → Remote Tables → Tables → New</div>
+      <ol>
+        <li>Click <strong>New</strong>.</li>
+        <li>Label: <code>Pollination AI Simple</code></li>
+        <li>Check <strong>Remote Table</strong>.</li>
+        <li>Add columns: <code>u_prompt</code> (String), <code>u_response</code> (String). Keep <code>sys_id</code>.</li>
+        <li>Optionally create a module.</li>
+      </ol>
+
+      <h2 id="create-definition">2. Create the Query Definition</h2>
+      <div class="breadcrumb">Application Navigator → System Definition → Remote Tables → Definitions → New</div>
+      <p>Paste the Query script. Key points:</p>
+      <ul>
+        <li><code>v_table.addRow(row)</code> is the only way to add a row.</li>
+        <li><code>v_query.setLastErrorMessage()</code> surfaces errors in the list.</li>
+        <li><code>row.sys_id = gs.generateGUID()</code> is required even though the row is not stored in the database.</li>
+      </ul>
+      <pre><code>var row = {};
+row.sys_id = gs.generateGUID();
+row.u_prompt = prompt;
+row.u_response = body;
+v_table.addRow(row);</code></pre>
+
+      <h2 id="sysid">3. Showing Sys ID on the List</h2>
+      <p>Sys ID is hidden from the normal Personalize List Columns dialog by design.</p>
+      <div class="breadcrumb">Application Navigator → System UI → Lists → open Default view for your table → List Elements → New → Element = sys_id</div>
+      <p>After saving, run <code>cache.do</code> and refresh the list.</p>
+
+      <h2 id="deep-dive">4. Deep Dive</h2>
+      <ul>
+        <li><strong>Transform data</strong> before calling <code>addRow</code> (e.g. round currency).</li>
+        <li><strong>Cooldown</strong> — store last call time in a system property to avoid rate limits.</li>
+        <li><strong>Dynamic prompt</strong> — read <code>v_query.getParameter("u_prompt")</code> so the user can filter and supply their own question.</li>
+      </ul>
+
+      <h2 id="access">5. Access Control</h2>
+      <p>On the table form, Controls tab: check <strong>Create access controls</strong> and set the role (e.g. <code>u_pollination_ai_simple_user</code>). Users without that role will not see the module or the rows.</p>
+
+      <h2 id="mysql">6. Mainstream Example: Pulling Events from MySQL</h2>
+      <p>A more typical production pattern is to expose a MySQL table as a REST endpoint, then call it from the Remote Table Definition.</p>
+      <p><strong>Step A — PHP endpoint</strong> (see <code>SampleEvents.php</code> in the repo):</p>
+      <pre><code>// Returns JSON array of events
+// Protect with an API key
+// Optional ?since= for incremental</code></pre>
+      <p><strong>Step B — Remote Table script</strong> (simplified):</p>
+      <pre><code>var rm = new sn_ws.RESTMessageV2();
+rm.setEndpoint("https://your-server/SampleEvents.php?key=YOUR_KEY");
+rm.setHttpMethod("GET");
+var response = rm.execute();
+var data = JSON.parse(response.getBody());
+
+for (var i = 0; i &lt; data.length; i++) {
+  var row = {};
+  row.sys_id = data[i].id;          // reuse external unique key
+  row.u_title = data[i].title;
+  row.u_location = data[i].location;
+  row.u_event_date = data[i].event_date;
+  v_table.addRow(row);
+}</code></pre>
+      <p>This pattern is the same as the Pollinations demo, just pointed at your own API.</p>
+
+      <h2 id="next">7. Beyond the Demo</h2>
+      <ul>
+        <li>Add a free Pollinations key to remove rate limits.</li>
+        <li>Set a TTL on the Definition to cache results.</li>
+        <li>Use the Flow field instead of a script (Washington DC+).</li>
+        <li>Make the table editable if you need write-back.</li>
+      </ul>
+
+      <footer>
+        <p>Also available as a plain Markdown guide in the repository README.<br>
+        Last updated for the Pollinations AI + MySQL events examples.</p>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute("data-theme") || "light";
+      const next = current === "light" ? "dark" : "light";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
+    }
+    // Restore preference
+    const saved = localStorage.getItem("theme");
+    if (saved) document.documentElement.setAttribute("data-theme", saved);
+  </script>
+</body>
+</html>
