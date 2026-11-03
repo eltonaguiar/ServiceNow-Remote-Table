@@ -23,6 +23,12 @@ This guide walks through a simple example that calls the free Pollinations AI en
 
 ## Step-by-step: Create the Remote Table
 
+After creation you will see both remote tables in the list:
+
+![Remote Tables list — Pollination AI Simple and Toronto Events Remote](images/remote-tables-list-both.png)
+
+
+
 **Navigation breadcrumbs:**  
 Application Navigator → **System Definition** → **Remote Tables** → **Tables** → **New**
 
