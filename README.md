@@ -55,6 +55,15 @@ https://dev296154.service-now.com/now/nav/ui/classic/params/target/sys_db_object
 **Navigation breadcrumbs:**  
 Application Navigator → **System Definition** → **Remote Tables** → **Definitions** → **New**
 
+The Remote Tables module contains two related lists:
+
+![Remote Tables navigator — Tables and Definitions](images/remote-tables-navigator.png)
+
+- **Tables** — where you define the schema (columns)
+- **Definitions** — where you write the Query script that populates the rows
+
+Open **Definitions** and click **New** to create the script that calls Pollinations.
+
 1. Click **New**.
 2. Fill in:
    - **Name**: `Pollinations Query`
