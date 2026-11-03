@@ -1,7 +1,7 @@
 # ServiceNow-Remote-Table
 
 
-##1  Create the Remote Table
+## 1  Create the Remote Table
 A remote table is a live view of external data (rows stay in memory — not stored in ServiceNow). Two pieces: the table schema, then a script that fills it.
 
 1. Create the remote table
