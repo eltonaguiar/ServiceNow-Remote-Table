@@ -15,7 +15,7 @@ Application Navigator → **System Definition** → **Remote Tables** → **Tabl
 2. Fill in:
    - **Label**: `Pollination AI Simple` (this is the friendly name users see)
    - Make sure the **Remote Table** checkbox is checked
-   - ServiceNow will auto-generate the system **Name** (something like `u_pollination_ai_simple`)
+   - ServiceNow will auto-generate the system **Name** (something like `u_st_pollination_ai_simple`)
 3. Click **Submit**.
 4. On the new table form, go to the **Columns** related list and add:
    - `u_prompt` (String, ~255) — the question you ask the AI
@@ -25,11 +25,13 @@ Application Navigator → **System Definition** → **Remote Tables** → **Tabl
    - On the table form, click **Create Module** or go to **System Definition → Modules → New**
    - Point it at your new table
 
-After you save, you should see something like this in the navigator:
+**Remote Tables list** (your instance):
+https://dev296154.service-now.com/now/nav/ui/classic/params/target/sys_db_object_list.do%3Fsysparm_userpref_module%3De9d76d1123403300edc0f4c947bf654e%26sysparm_view%3DTables%26sysparm_query%3Dscriptable_table%253Dtrue%255EEQ%26sysparm_clear_stack%3Dtrue
 
-![Navigator showing Pollination AI Simple module](https://github.com/user-attachments/assets/PLACEHOLDER-screenshot-pollination-modules.png)
+![Remote Tables list showing Pollination AI Simple](https://github.com/user-attachments/assets/PLACEHOLDER-remote-tables-list.png)
 
-*(Upload the screenshot you shared of the navigator modules and replace the URL above.)*
+**Columns on the table:**
+![Columns related list — sys_id, u_response, u_prompt](https://github.com/user-attachments/assets/PLACEHOLDER-columns.png)
 
 ---
 
@@ -46,14 +48,38 @@ Application Navigator → **System Definition** → **Remote Tables** → **Defi
 3. Scroll to the **Query** script field, delete the default template, and paste the code below.
 4. **Save**.
 
+![Definition form with IntegrationHub warning and Flow field](https://github.com/user-attachments/assets/PLACEHOLDER-definition-form.png)
+
+### IntegrationHub entitlement note
+
+The blue banner on the Definition form says:
+
+> Creating a remote table that utilizes data from an external (outside ServiceNow) source requires an IntegrationHub entitlement and consumes IntegrationHub transactions.
+
+This is official ServiceNow guidance. Using a remote table against an outside API (Pollinations, etc.) is treated as an Integration Hub use case.
+
+- **Lab / PDI**: You can usually activate and use it for learning without a paid production subscription.
+- **Production**: You need a real Integration Hub entitlement. Each external call can count against your transaction limit.
+
+### What the Flow field does
+
+The **Flow** field (Washington DC and later) lets you populate the remote table with a Flow Designer flow instead of a script.
+
+**Order of operations when the remote table is opened:**
+1. ServiceNow checks whether the Definition is Active.
+2. If a **Flow** is filled in → it runs that flow (and the Script field is hidden).
+3. If no Flow is set → it runs the **Query Script**.
+4. The flow or script calls `v_table.addRow(...)` (or the Flow Designer “Create Remote Table Record” action).
+5. The rows appear in the list/form (and can be cached if you set a TTL).
+
+In Flow Designer the trigger is **Remote Table Query**. Inside the flow you call your REST/spoke action, then use **Create Remote Table Record** to add each row.
+
 ### Why `v_table` and `v_query` exist
 
 - `v_table` — the object ServiceNow gives you so you can add rows.  
   `v_table.addRow(row)` is the only way to put a record into the remote table.
 - `v_query` — represents the current request.  
   We mainly use `v_query.setLastErrorMessage(...)` so errors show up at the bottom of the list instead of failing silently.
-
-We don’t use the advanced filtering methods because this demo only returns one hard-coded row.
 
 ```javascript
 // This function runs every time someone opens the remote table list
@@ -105,7 +131,39 @@ We don’t use the advanced filtering methods because this demo only returns one
 
 **To test:** Open the list of your remote table from the navigator. The script runs automatically and you should see one row.
 
+**Resulting table list** (cooldown ~1 minute because of Pollinations rate limit):
+https://dev296154.service-now.com/now/nav/ui/classic/params/target/u_st_pollination_ai_simple_list.do
+
 > **Note:** The free Pollinations endpoint is rate-limited (about 1 request every 45 seconds per IP). If you see a 402 error, just wait a minute and refresh.
+
+---
+
+## Why Sys ID is not visible in the list (and how to show it)
+
+By design, ServiceNow hides the `sys_id` field from the normal **Personalize List Columns** dialog (the gear icon). It is considered a technical/internal identifier, so it does not appear in the “Available” columns list for most tables, including custom and remote tables.
+
+![Personalize List Columns — sys_id is missing from Available](https://github.com/user-attachments/assets/PLACEHOLDER-personalize-list-no-sysid.png)
+
+It still exists on every row (your script correctly sets `row.sys_id = gs.generateGUID()`), you just can’t add it through the normal personalize UI.
+
+### How to make Sys ID visible on the list
+
+**Navigation breadcrumbs:**  
+Application Navigator → **System UI** → **Lists**
+
+1. Find the list record for your table (`u_st_pollination_ai_simple`) and the view you use (usually “Default”).
+2. Open that list record.
+3. In the **List Elements** related list, click **New**.
+4. Set:
+   - **Element** = `sys_id`
+   - **Position** = whatever order you want (e.g. 100 or 1)
+5. Save.
+6. Go to `cache.do` in the browser (or log out and back in) to clear the cache.
+7. Re-open your remote table list.  
+   Sys ID should now appear as a column. You can then personalize/reorder it if needed.
+
+**Alternative (form view):**  
+Right-click the form header → **Configure** → **Form Layout** → double-click in the empty space outside the slushbucket → `sys_id` appears → move it to the selected side.
 
 ---
 
@@ -201,33 +259,6 @@ if (!userPrompt) {
 // then use userPrompt in the API call instead of the hard-coded string
 ```
 The user can type something in the **prompt** column filter (or you can add a UI Action / catalog item that sets the filter) and the remote table will call the AI with their text.
-
----
-
-## Why Sys ID is not visible in the list (and how to show it)
-
-By design, ServiceNow hides the `sys_id` field from the normal **Personalize List Columns** dialog (the gear icon). It is considered a technical/internal identifier, so it does not appear in the “Available” columns list for most tables, including custom and remote tables.
-
-It still exists on every row (your script correctly sets `row.sys_id = gs.generateGUID()`), you just can’t add it through the normal personalize UI.
-
-### How to make Sys ID visible on the list
-
-**Navigation breadcrumbs:**  
-Application Navigator → **System UI** → **Lists**
-
-1. Find the list record for your table (`u_st_pollination_ai_simple`) and the view you use (usually “Default”).
-2. Open that list record.
-3. In the **List Elements** related list, click **New**.
-4. Set:
-   - **Element** = `sys_id`
-   - **Position** = whatever order you want (e.g. 100 or 1)
-5. Save.
-6. Go to `cache.do` in the browser (or log out and back in) to clear the cache.
-7. Re-open your remote table list.  
-   Sys ID should now appear as a column. You can then personalize/reorder it if needed.
-
-**Alternative (form view):**  
-Right-click the form header → **Configure** → **Form Layout** → double-click in the empty space outside the slushbucket → `sys_id` appears → move it to the selected side.
 
 ---
 
