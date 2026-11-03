@@ -218,6 +218,27 @@ Application Navigator → **System UI** → **Lists**
 **Alternative (form view):**  
 Right-click the form header → **Configure** → **Form Layout** → double-click in the empty space outside the slushbucket → `sys_id` appears → move it to the selected side.
 
+### Is showing Sys ID on lists or forms a best practice?
+
+**For general business users: No.**
+
+- A `sys_id` is a 32-character hexadecimal string. It adds clutter and horizontal scrolling without giving readable context.
+- ServiceNow hides it by design because it is a low-level primary key meant for the platform, integrations, and scripts — not for end users.
+- Exposing it increases the chance of someone copying or editing it incorrectly.
+
+**When it is acceptable**
+
+- Admins, developers, and integrators who need it for troubleshooting, data migrations, bulk updates, or API work.
+- Temporary troubleshooting on a personal list view (not a shared/public list).
+
+**What to do instead**
+
+- Leave `sys_id` off the default list and form for business users.
+- If you need the value, grab it from the URL when you open a record, or use a background script / export.
+- If you must show it for a specific technical audience, add it only on a dedicated list view (via System UI → Lists → List Elements) rather than the default view everyone sees.
+
+
+
 ### What `row.sys_id = gs.generateGUID();` actually does
 
 ```javascript
@@ -402,6 +423,92 @@ or
 **Result:** Only users who have the `u_pollination_ai_simple_user` role (or admin) can open the list and see the AI responses.
 
 ---
+
+
+## Next Remote Table build idea — Events via PHP + MySQL
+
+You can point a second remote table at a simple PHP endpoint that queries a MySQL database of events. No real credentials are shown below — use placeholders.
+
+### High-level idea
+
+- Your webpage (or a small PHP script) exposes an endpoint such as:
+  ```
+  https://your-server.example.com/events.php?city=Toronto
+  ```
+- The PHP script connects to MySQL, runs a query, and returns JSON.
+- The remote table Query script calls that endpoint with `sn_ws.RESTMessageV2` and turns each JSON row into a remote table row.
+
+### Placeholder PHP endpoint (example)
+
+```php
+<?php
+// events.php — placeholder only, do not use real credentials here
+header('Content-Type: application/json');
+
+$host = 'localhost';          // placeholder
+$db   = 'events_db';          // placeholder
+$user = 'readonly_user';      // placeholder
+$pass = 'your_password_here'; // placeholder
+
+$mysqli = new mysqli($host, $user, $pass, $db);
+if ($mysqli->connect_error) {
+    http_response_code(500);
+    echo json_encode(['error' => 'DB connection failed']);
+    exit;
+}
+
+$city = $_GET['city'] ?? 'Toronto';
+$stmt = $mysqli->prepare('SELECT id, title, start_date, location FROM events WHERE city = ? LIMIT 50');
+$stmt->bind_param('s', $city);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$rows = [];
+while ($row = $result->fetch_assoc()) {
+    $rows[] = $row;
+}
+echo json_encode($rows);
+?>
+```
+
+### Setup steps for the remote table
+
+1. **Create the remote table**  
+   System Definition → Remote Tables → Tables → New  
+   Label: `Toronto Events Remote`  
+   Name will become something like `u_st_toronto_events_remote`.
+
+2. **Add columns**  
+   On the table form, Columns related list → New (or use the dictionary):
+   - `u_event_id` (String)
+   - `u_title` (String)
+   - `u_start_date` (Date/Time or String)
+   - `u_location` (String)
+
+3. **Create the Definition**  
+   System Definition → Remote Tables → Definitions → New  
+   Point it at the table above and paste a Query script that:
+   - Builds the PHP URL
+   - Calls it with `sn_ws.RESTMessageV2`
+   - Parses the JSON
+   - Calls `v_table.addRow(row)` for each event
+
+4. **Access controls**  
+   Use the Controls tab to create a role (or reuse an existing one) so only the right users can open the list.
+
+### Shortcut — do you have to create columns one by one?
+
+**Yes, for a remote table you still create the columns on that table.**
+
+- Even if you already have a normal (non-remote) table with the same fields, a remote table does not automatically inherit them.
+- There is no “copy columns from another table” button on a remote table.
+- Fastest options:
+  - Add them manually in the Columns related list (usually only a handful).
+  - Or use a background script / update set to insert the `sys_dictionary` records if you have many columns.
+- You can look at the existing non-remote table’s dictionary entries and mirror the Column label / Column name / Type, but you still have to define them on the remote table itself.
+
+Once the columns exist, the Query script just populates them from the JSON returned by the PHP endpoint.
+
 
 ## Beyond this demo — things you can do next
 
