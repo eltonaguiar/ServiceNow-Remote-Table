@@ -185,11 +185,19 @@ https://dev296154.service-now.com/now/nav/ui/classic/params/target/u_st_pollinat
 
 ## Why Sys ID is not visible in the list (and how to show it)
 
-By design, ServiceNow hides the `sys_id` field from the normal **Personalize List Columns** dialog (the gear icon). It is considered a technical/internal identifier, so it does not appear in the “Available” columns list for most tables, including custom and remote tables.
+**Why this section exists**
+
+When you open a list and click the gear icon (**Personalize List Columns**), `sys_id` is almost never in the Available columns. This is true for most tables in ServiceNow — not just remote tables. People often think the field is missing or that their script failed to set it. It is not missing. It is intentionally hidden from the normal personalize UI.
+
+**Why ServiceNow hides it**
+
+- `sys_id` is an internal primary key (a 32-character GUID).
+- It is not meant for everyday business users. Showing it by default would clutter lists and encourage people to copy or edit it.
+- The platform still uses it under the hood for forms, references, and uniqueness. Your remote table script must still set `row.sys_id` so the form can open and the row is unique.
 
 ![Personalize List Columns — sys_id is missing from Available](images/personalize-list-no-sysid.png)
 
-It still exists on every row (your script correctly sets `row.sys_id = gs.generateGUID()`), you just can’t add it through the normal personalize UI.
+The value exists on every row (your script sets `row.sys_id = gs.generateGUID()`). You just cannot add the column through the normal personalize dialog. That is why the steps below exist.
 
 ### How to make Sys ID visible on the list
 
