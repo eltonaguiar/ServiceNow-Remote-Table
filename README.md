@@ -1,5 +1,17 @@
 # ServiceNow-Remote-Table
 
+
+##1  Create the Remote Table
+A remote table is a live view of external data (rows stay in memory — not stored in ServiceNow). Two pieces: the table schema, then a script that fills it.
+
+1. Create the remote table
+System Definition → Tables → New (or Remote Tables → Tables → New)
+Label e.g. Toronto Events Remote
+Check Remote Table (name becomes something like u_st_toronto_events_remote)
+Add columns that match your MySQL fields (name, date, venue, etc.). sys_id is already there — leave it.
+Optionally Create module so it shows in the nav → Submit
+
+
 Quick Demo based on 
 u_location	u_event_id	u_last_updated	u_event_date	u_title	sys_created_on	sys_created_by	sys_tags	sys_updated_on	sys_updated_by	sys_mod_count	sys_id
 <img width="769" height="21" alt="image" src="https://github.com/user-attachments/assets/71930955-08a9-4a54-92cc-5afec00e9eea" />
