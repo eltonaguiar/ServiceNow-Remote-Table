@@ -4,6 +4,21 @@ A remote table lets you show live data from an outside source (like an AI API) i
 
 This guide walks through a simple example that calls the free Pollinations AI endpoint.
 
+## Table of Contents
+
+- [Step-by-step: Create the Remote Table](#step-by-step-create-the-remote-table)
+- [Step-by-step: Create the Query Script (Definition)](#step-by-step-create-the-query-script-definition)
+  - [IntegrationHub entitlement note](#integrationhub-entitlement-note)
+  - [What the Flow field does](#what-the-flow-field-does)
+  - [Why `v_table` and `v_query` exist](#why-v_table-and-v_query-exist)
+- [Why Sys ID is not visible in the list (and how to show it)](#why-sys-id-is-not-visible-in-the-list-and-how-to-show-it)
+  - [How to make Sys ID visible on the list](#how-to-make-sys-id-visible-on-the-list)
+  - [What `row.sys_id = gs.generateGUID();` actually does](#what-rowsys_id--gsgenerateguid-actually-does)
+- [Deep dive: `v_table`, `v_query`, transforming data, cooldowns, and dynamic prompts](#deep-dive-v_table-v_query-transforming-data-cooldowns-and-dynamic-prompts)
+- [Access Control — Who can see the remote table?](#access-control--who-can-see-the-remote-table)
+- [Beyond this demo — things you can do next](#beyond-this-demo--things-you-can-do-next)
+- [Remote Table out-of-box sample code (reference only)](#remote-table-out-of-box-sample-code-reference-only)
+
 ---
 
 ## Step-by-step: Create the Remote Table
