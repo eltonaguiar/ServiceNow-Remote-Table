@@ -78,6 +78,8 @@ Open **Definitions** and click **New** to create the script that calls Pollinati
 3. Scroll to the **Query** script field, delete the default template, and paste the code below.
 4. **Save**.
 
+![Pollinations_definition form with query script](images/definition-form-script.png)
+
 ![Definition form with IntegrationHub warning and Flow field](images/definition-form.png)
 
 ### IntegrationHub entitlement note
