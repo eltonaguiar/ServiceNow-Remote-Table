@@ -94,6 +94,14 @@
       padding: 1rem 1.25rem;
       margin: 1.5rem 0;
     }
+    .placeholder {
+      background: var(--code-bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+      color: var(--muted);
+    }
     .code-link {
       display: inline-flex;
       align-items: center;
@@ -116,6 +124,7 @@
       color: var(--muted);
       font-size: 0.85rem;
     }
+    footer a { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -129,7 +138,9 @@
       <a href="#deep-dive">4. Deep Dive</a>
       <a href="#access">5. Access Control</a>
       <a href="#mysql">6. Mainstream Example: MySQL Events</a>
-      <a href="#next">7. Beyond the Demo</a>
+      <a href="#dependencies">7. Dependencies &amp; MID Server</a>
+      <a href="#remote-table-2">8. Remote Table -2 (PHP + MySQL)</a>
+      <a href="#next">9. Beyond the Demo</a>
       <br>
       <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark/Light</button>
       <a class="code-link" href="https://github.com/eltonaguiar/ServiceNow-Remote-Table/" target="_blank" rel="noopener">
@@ -209,7 +220,17 @@ for (var i = 0; i &lt; data.length; i++) {
 }</code></pre>
       <p>This pattern is the same as the Pollinations demo, just pointed at your own API.</p>
 
-      <h2 id="next">7. Beyond the Demo</h2>
+      <h2 id="dependencies">7. Dependencies &amp; MID Server</h2>
+      <p>This Remote Table solution is <strong>independent of the MID Server</strong>.</p>
+      <p>A MID Server (Management, Instrumentation, and Discovery Server) is a lightweight Java process that runs on a host inside your network. It is mainly used for Discovery, Orchestration, and connecting to systems that are not reachable from the ServiceNow cloud (for example, on-premise databases or LDAP). Because the examples in this guide call publicly reachable HTTPS endpoints (Pollinations or a PHP wrapper you expose), no MID Server is required.</p>
+
+      <h2 id="remote-table-2">8. Remote Table -2 (PHP + MySQL)</h2>
+      <div class="placeholder">
+        <strong>Placeholder — Remote Table -2</strong><br>
+        This section will document a second remote table that pulls live event data from a MySQL database through a thin PHP wrapper endpoint. It will reuse the same pattern as the Pollinations example (Definition + <code>v_table.addRow()</code>) but will source rows from the JSON returned by <code>SampleEvents.php</code>. Full walkthrough and screenshots coming soon.
+      </div>
+
+      <h2 id="next">9. Beyond the Demo</h2>
       <ul>
         <li>Add a free Pollinations key to remove rate limits.</li>
         <li>Set a TTL on the Definition to cache results.</li>
@@ -219,6 +240,7 @@ for (var i = 0; i &lt; data.length; i++) {
 
       <footer>
         <p>Also available as a plain Markdown guide in the repository README.<br>
+        Part of the broader <a href="https://github.com/eltonaguiar/servicenow_portfolio" target="_blank" rel="noopener">ServiceNow Portfolio</a>.<br>
         Last updated for the Pollinations AI + MySQL events examples.</p>
       </footer>
     </main>
