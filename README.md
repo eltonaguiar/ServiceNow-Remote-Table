@@ -43,10 +43,10 @@ Application Navigator → **System Definition** → **Remote Tables** → **Tabl
 **Remote Tables list** (your instance):
 https://dev296154.service-now.com/now/nav/ui/classic/params/target/sys_db_object_list.do%3Fsysparm_userpref_module%3De9d76d1123403300edc0f4c947bf654e%26sysparm_view%3DTables%26sysparm_query%3Dscriptable_table%253Dtrue%255EEQ%26sysparm_clear_stack%3Dtrue
 
-![Remote Tables list showing Pollination AI Simple](https://github.com/user-attachments/assets/PLACEHOLDER-remote-tables-list.png)
+![Remote Tables list showing Pollination AI Simple](images/remote-tables-list.png)
 
 **Columns on the table:**
-![Columns related list — sys_id, u_response, u_prompt](images/list-elements.png)
+![Columns related list — sys_id, u_response, u_prompt](images/columns.png)
 
 ---
 
@@ -63,7 +63,7 @@ Application Navigator → **System Definition** → **Remote Tables** → **Defi
 3. Scroll to the **Query** script field, delete the default template, and paste the code below.
 4. **Save**.
 
-![Definition form with IntegrationHub warning and Flow field](https://github.com/user-attachments/assets/PLACEHOLDER-definition-form.png)
+![Definition form with IntegrationHub warning and Flow field](images/definition-form.png)
 
 ### IntegrationHub entitlement note
 
@@ -157,7 +157,7 @@ https://dev296154.service-now.com/now/nav/ui/classic/params/target/u_st_pollinat
 
 By design, ServiceNow hides the `sys_id` field from the normal **Personalize List Columns** dialog (the gear icon). It is considered a technical/internal identifier, so it does not appear in the “Available” columns list for most tables, including custom and remote tables.
 
-![Personalize List Columns — sys_id is missing from Available](images/list-view-menu.png)
+![Personalize List Columns — sys_id is missing from Available](images/personalize-list-no-sysid.png)
 
 It still exists on every row (your script correctly sets `row.sys_id = gs.generateGUID()`), you just can’t add it through the normal personalize UI.
 
@@ -328,7 +328,7 @@ On the table form you set:
 - **Create access controls** checked
 - **User role** = `u_pollination_ai_simple_user`
 
-![Controls tab with Create access controls and role](https://github.com/user-attachments/assets/PLACEHOLDER-controls-tab.png)
+![Controls tab with Create access controls and role](images/controls-tab.png)
 
 **Application Access tab:**
 - Accessible from: All application scopes
@@ -336,12 +336,12 @@ On the table form you set:
 - Can create / update / delete: unchecked
 - Allow access to this table via web services: checked
 
-![Application Access tab](https://github.com/user-attachments/assets/PLACEHOLDER-application-access.png)
+![Application Access tab](images/application-access.png)
 
 **Access Controls related list** (auto-created):
 - read, create, write, delete — all “Allow If” and Active
 
-![Access Controls related list](https://github.com/user-attachments/assets/PLACEHOLDER-acls.png)
+![Access Controls related list](images/acls.png)
 
 ### What happens if a user **without** the `u_pollination_ai_simple_user` role tries to open the table
 
