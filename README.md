@@ -109,6 +109,101 @@ We don’t use the advanced filtering methods because this demo only returns one
 
 ---
 
+## Deep dive: `v_table`, `v_query`, transforming data, cooldowns, and dynamic prompts
+
+### Why do you add rows with `v_table`?
+
+A remote table has **no database rows**. Every time someone opens the list, your script must manually build the rows and hand them to ServiceNow.  
+`v_table.addRow(row)` is what makes a record appear.
+
+**Example — returning 3 different AI answers:**
+```javascript
+var questions = ["What is 2 + 2?", "Capital of France?", "Color of the sky?"];
+
+for (var i = 0; i < questions.length; i++) {
+    var row = {};
+    row.sys_id     = gs.generateGUID();
+    row.u_prompt   = questions[i];
+    row.u_response = callAI(questions[i]);   // your REST call
+    v_table.addRow(row);                     // this is what makes the row appear
+}
+```
+Without `v_table.addRow()`, nothing shows up in the list.
+
+### What is `v_query` for?
+
+`v_query` is the **request object**. It tells you what the user is asking for and lets you talk back to the platform.
+
+Common uses:
+- `v_query.setLastErrorMessage("something broke")` — shows a red error banner at the bottom of the list
+- `v_query.isGet()` / `v_query.getSysId()` — someone opened a single form (not the list)
+- `v_query.getParameter("u_prompt")` — the user filtered or searched on a field
+- `v_query.getEncodedQuery()` — the full filter the user applied
+
+You almost always use it for error reporting and for reading what the user is looking for.
+
+### Transforming data (currency example)
+
+You do the transformation **before** you call `v_table.addRow()`.  
+Neither object does the math for you — you do it in normal JavaScript, then put the clean value in the row.
+
+**Example — turn `"4.433"` into `$4.43`:**
+```javascript
+var raw = "4.433";                          // came from the API as a string
+var number = parseFloat(raw);               // 4.433
+var rounded = Math.round(number * 100) / 100; // 4.43
+var currency = "$" + rounded.toFixed(2);    // "$4.43"
+
+var row = {};
+row.sys_id = gs.generateGUID();
+row.u_amount = currency;                    // put the transformed value in the row
+v_table.addRow(row);
+```
+You can do this for every field you want cleaned, formatted, rounded, etc.
+
+### Safeguard against spamming the API (cooldown)
+
+You can store the last call time in a system property (or a tiny local table) and skip the API if it is still in cooldown.
+
+**Simple version using a system property:**
+```javascript
+var lastCall = gs.getProperty("pollinations.last_call", "0");
+var now = new Date().getTime();
+var cooldownMs = 45 * 1000;                 // 45 seconds
+
+if (now - parseInt(lastCall) < cooldownMs) {
+    v_query.setLastErrorMessage("Still in cooldown — wait " + 
+        Math.ceil((cooldownMs - (now - parseInt(lastCall))) / 1000) + " seconds");
+    return;
+}
+
+// ... do the API call ...
+
+// after a successful call:
+gs.setProperty("pollinations.last_call", now.toString());
+```
+This stops the script from hitting Pollinations again until the cooldown is over.
+
+### Let the user supply their own prompt
+
+Use `v_query` to read what the user typed in the list filter or a search field.
+
+**Example — user types a prompt in the filter:**
+```javascript
+// If the user filtered on the prompt field, use that value
+var userPrompt = v_query.getParameter("u_prompt");
+
+// Fallback if they didn’t filter
+if (!userPrompt) {
+    userPrompt = "What is 2 + 2?";
+}
+
+// then use userPrompt in the API call instead of the hard-coded string
+```
+The user can type something in the **prompt** column filter (or you can add a UI Action / catalog item that sets the filter) and the remote table will call the AI with their text.
+
+---
+
 ## Why Sys ID is not visible in the list (and how to show it)
 
 By design, ServiceNow hides the `sys_id` field from the normal **Personalize List Columns** dialog (the gear icon). It is considered a technical/internal identifier, so it does not appear in the “Available” columns list for most tables, including custom and remote tables.
