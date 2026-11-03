@@ -46,7 +46,7 @@ https://dev296154.service-now.com/now/nav/ui/classic/params/target/sys_db_object
 ![Remote Tables list showing Pollination AI Simple](https://github.com/user-attachments/assets/PLACEHOLDER-remote-tables-list.png)
 
 **Columns on the table:**
-![Columns related list — sys_id, u_response, u_prompt](https://github.com/user-attachments/assets/PLACEHOLDER-columns.png)
+![Columns related list — sys_id, u_response, u_prompt](images/list-elements.png)
 
 ---
 
@@ -157,7 +157,7 @@ https://dev296154.service-now.com/now/nav/ui/classic/params/target/u_st_pollinat
 
 By design, ServiceNow hides the `sys_id` field from the normal **Personalize List Columns** dialog (the gear icon). It is considered a technical/internal identifier, so it does not appear in the “Available” columns list for most tables, including custom and remote tables.
 
-![Personalize List Columns — sys_id is missing from Available](https://github.com/user-attachments/assets/PLACEHOLDER-personalize-list-no-sysid.png)
+![Personalize List Columns — sys_id is missing from Available](images/list-view-menu.png)
 
 It still exists on every row (your script correctly sets `row.sys_id = gs.generateGUID()`), you just can’t add it through the normal personalize UI.
 
