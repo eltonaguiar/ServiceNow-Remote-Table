@@ -12,6 +12,20 @@ Add columns that match your MySQL fields (name, date, venue, etc.). sys_id is al
 Optionally Create module so it shows in the nav → Submit
 
 
+ # Bare Minimum  use Pollinations API 
+ i.e. something like this
+ <img width="720" height="70" alt="image" src="https://github.com/user-attachments/assets/b383ab6a-78e7-492c-90d3-e67211710aa6" />
+ Can also visit it in a browser and it will render 2+2=4 (where 4 came from the AI )
+ https://text.pollinations.ai/What%20is%202+2?model=openai-fast 
+<img width="1429" height="661" alt="image" src="https://github.com/user-attachments/assets/69bc7a51-951e-47cf-945a-d008eb630600" />
+
+
+
+
+# IGNORE BELOW , this would be covered in a future update/
+
+=-===================================
+
 Quick Demo based on 
 u_location	u_event_id	u_last_updated	u_event_date	u_title	sys_created_on	sys_created_by	sys_tags	sys_updated_on	sys_updated_by	sys_mod_count	sys_id
 <img width="769" height="21" alt="image" src="https://github.com/user-attachments/assets/71930955-08a9-4a54-92cc-5afec00e9eea" />
