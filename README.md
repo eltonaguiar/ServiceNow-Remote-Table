@@ -266,24 +266,45 @@ The user can type something in the **prompt** column filter (or you can add a UI
 
 Remote tables follow the same security rules as normal tables.
 
-### What you did
-You created a role (or user) called `u_pollination_ai_simple_user` and (presumably) granted that role access to the table.
+### What you configured
 
-### What happens if a user **without** that role tries to open the table
+On the table form you set:
 
-- They will **not** see the module in the navigator (if the module is restricted).
+**Controls tab:**
+- **Create access controls** checked
+- **User role** = `u_pollination_ai_simple_user`
+
+![Controls tab with Create access controls and role](https://github.com/user-attachments/assets/PLACEHOLDER-controls-tab.png)
+
+**Application Access tab:**
+- Accessible from: All application scopes
+- Can read: checked
+- Can create / update / delete: unchecked
+- Allow access to this table via web services: checked
+
+![Application Access tab](https://github.com/user-attachments/assets/PLACEHOLDER-application-access.png)
+
+**Access Controls related list** (auto-created):
+- read, create, write, delete — all “Allow If” and Active
+
+![Access Controls related list](https://github.com/user-attachments/assets/PLACEHOLDER-acls.png)
+
+### What happens if a user **without** the `u_pollination_ai_simple_user` role tries to open the table
+
+- They will **not** see the module in the navigator (if the module is restricted to that role).
 - If they somehow navigate to the list URL directly, ServiceNow will show a **security constraint** / access denied message.
 - They will not see any rows, and the query script will not even run for them.
 
 ### How to control it
 
 **Navigation breadcrumbs:**  
-Application Navigator → **System Definition** → **Remote Tables** → **Tables** → open your table → **Application Access** tab  
+Application Navigator → **System Definition** → **Remote Tables** → **Tables** → open your table → **Application Access** or **Controls** tab  
 or  
 **System Security** → **Access Control (ACL)** → search for your table name
 
 - On the table form under **Application Access**, you can restrict which applications/roles can access it.
-- For finer control, create ACLs on the table (read, write, etc.) that require the `u_pollination_ai_simple_user` role.
+- Under **Controls**, checking “Create access controls” and naming a role generates the default ACLs for that role.
+- For finer control, edit the ACLs so only users with `u_pollination_ai_simple_user` can read the table.
 - Modules can also have a **Roles** field so only users with that role see the link in the navigator.
 
 **Result:** Only users who have the `u_pollination_ai_simple_user` role (or admin) can open the list and see the AI responses.
