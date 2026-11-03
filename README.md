@@ -80,6 +80,8 @@ Open **Definitions** and click **New** to create the script that calls Pollinati
 
 ![Pollinations_definition form with query script](images/definition-form-script.png)
 
+The form shows the **Advanced** checkbox (left unchecked for this example) and the Query script that calls Pollinations.
+
 ![Definition form with IntegrationHub warning and Flow field](images/definition-form.png)
 
 ### IntegrationHub entitlement note
@@ -105,6 +107,17 @@ The **Flow** field (Washington DC and later) lets you populate the remote table 
 5. The rows appear in the list/form (and can be cached if you set a TTL).
 
 In Flow Designer the trigger is **Remote Table Query**. Inside the flow you call your REST/spoke action, then use **Create Remote Table Record** to add each row.
+
+
+### What the Advanced checkbox does
+
+On the Definition form there is an **Advanced** checkbox.
+
+- **Unchecked (default)** — you write a normal Query script in the Script field. This is what we used for the Pollinations example.
+- **Checked** — ServiceNow expects a more advanced pattern (typically used when you want to implement the full remote table interface or call a Script Include). For most simple external API cases you can leave it unchecked.
+
+In this demo we left **Advanced** unchecked and put the entire logic inside the Query script.
+
 
 ### Why `v_table` and `v_query` exist
 
