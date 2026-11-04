@@ -17,6 +17,7 @@ This guide walks through a simple example that calls the free Pollinations AI en
 - [Deep dive: `v_table`, `v_query`, transforming data, cooldowns, and dynamic prompts](#deep-dive-v_table-v_query-transforming-data-cooldowns-and-dynamic-prompts)
 - [Access Control — Who can see the remote table?](#access-control--who-can-see-the-remote-table)
 - [Beyond this demo — things you can do next](#beyond-this-demo--things-you-can-do-next)
+- [The other direction — when the site calls *you* (Scripted REST API)](#the-other-direction--when-the-site-calls-you-scripted-rest-api)
 - [Remote Table out-of-box sample code (reference only)](#remote-table-out-of-box-sample-code-reference-only)
 
 ---
@@ -529,6 +530,39 @@ Once the columns exist, the Query script just populates them from the JSON retur
 - Cache the results (set a TTL on the Definition) so it doesn’t call the AI on every page load.
 - Make the table editable and handle insert/update/delete scripts if you want to write back to the external system.
 - Use the same pattern to pull from your own MySQL table (expose it as a REST API first).
+
+---
+
+## The other direction — when the site calls *you* (Scripted REST API)
+
+Everything on this page pulls data **into** ServiceNow: the remote table reaches out, and the portfolio's other REST
+project — [#7 `servicenow-iplookup`](https://github.com/eltonaguiar/servicenow-iplookup) — does the same with
+`sn_ws.RESTMessageV2`. Both are the *consumer* side of one idea. The mirror image is ServiceNow as the **provider**:
+a **Scripted REST API**, where you publish an address other systems call.
+
+When you would reach for it: the remote table already knows which events are de-duplicated, tagged, or approved *in
+ServiceNow*, and now the PHP site wants that judgement back. The site could query MySQL directly — and then it owns
+database credentials and re-implements rules it does not own. Or you publish one endpoint:
+
+```
+GET https://<instance>.service-now.com/api/x_yourscope_events/approved?since=2026-11-04%2020:00:00
+Authorization: Basic  <integration user holding the role you put on the resource>
+
+→ {"count":2,"events":[{"event_id":"evt_123","approved":true,"tags":["holiday"]}]}
+```
+
+Three things change once the endpoint is yours, compared with the pull direction above:
+
+| | Pull (this repo, and #7) | Publish (Scripted REST API) |
+|---|---|---|
+| Who can break it | the outside API changes shape | **you** do — every field you rename is a contract with every caller |
+| Where the secret lives | on the REST Message, out of sight | each caller holds a user + role; the *shape* is public |
+| Records to create | `sys_rest_message` + function + parameters | `sys_ws_definition` + `sys_ws_operation` + a role on the resource |
+| Testing without a client | background script, or the endpoint's own docs | **REST API Explorer → Try it** |
+
+The full lab — six breadcrumbs, the resource script, the scoped-app trap, and the `401/403/404` map — is in the
+ip-lookup guide's appendix: **A3 Scripted REST API — the lab** →
+[`README#a3-scripted-rest-api--the-lab-servicenow-serves`](https://github.com/eltonaguiar/servicenow-iplookup/blob/main/README.md#a3-scripted-rest-api--the-lab-servicenow-serves).
 
 ---
 
